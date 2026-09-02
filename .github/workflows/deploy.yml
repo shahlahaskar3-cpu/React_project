@@ -1,36 +1,41 @@
-name: Deploy React to cPanel
+name: CD
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - 'react-project/**'
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm"
 
       - name: Install dependencies
-        working-directory: ./react-project
         run: npm install
 
       - name: Build
-        working-directory: ./react-project
         run: npm run build
 
-      - name: Deploy to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-            server: ${{ secrets.FTP_HOST }}
-            username: ${{ secrets.FTP_USERNAME }}
-            password: ${{ secrets.FTP_PASSWORD }}
-            local-dir: ./react-project/dist/
-            server-dir: ./
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H technical.infolks.info >> ~/.ssh/known_hosts
+
+      - name: Sync build to cPanel
+        run: |
+          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key" \
+            ./dist/ webfolks@technical.infolks.info:/home/webfolks/public_html/react/
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
