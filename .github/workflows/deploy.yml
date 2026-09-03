@@ -35,7 +35,7 @@ jobs:
 
       - name: Sync build to cPanel
         run: |
-          scp -i ~/.ssh/deploy_key -r ./dist/* webfolks@technical.infolks.info:/home/webfolks/public_html/react/
+          scp -i ~/.ssh/deploy_key -r ./dist/. webfolks@technical.infolks.info:/home/webfolks/public_html/react/
 
       - name: Clean up SSH key
         if: always()
