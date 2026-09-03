@@ -59,7 +59,7 @@ function App() {
 
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Student Name</label>
+          <label>Student Name Test</label>
           <input
             type="text"
             name="name"
